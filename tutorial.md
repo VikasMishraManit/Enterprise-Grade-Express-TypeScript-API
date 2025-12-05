@@ -31,7 +31,7 @@ See all these installations in the package.json file
 
 
 
-## Configure the typescript 
+## ⬢ New Section : Configure the typescript 
 
 We will define how typescript should behave in this project 
 
