@@ -1,4 +1,4 @@
-## ➤➤➤ Setup basic project 
+## ⬢ New Section : Setup basic project 
 
 1) set up node js project
 ```
@@ -46,7 +46,7 @@ npx tsc --init
 ```
 
 
-## Configuring the tsconfig file
+## ⬢ New Section : Configuring the tsconfig file
 
 1) include : directories to include (for ts compliation)
 2) exclude : directories to exclude (for ts compilation)
@@ -81,7 +81,7 @@ npx tsc --init
 
 
 
-## Running the Typescript code 
+## ⬢ New Section : Running the Typescript code 
 
 1) Define a basic server in src->server.ts file
 ```
@@ -118,7 +118,7 @@ node dist/server.js
 This js code will not be having a lot of baggage and we can directly ship this js code 
 
 
-## Git setup
+## ⬢ New Section : Git setup
 
 1) Make a .gitignore file . put following thins there
 ```
