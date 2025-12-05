@@ -1,78 +1,139 @@
-1) To run typescript 
--> use ts-node
--> or convert ts into js
+## Setup basic project 
 
-<!-- ====================== Section Separator ====================== -->
-Basic Setup
+1) set up node js project
+```
+npm init -y
+```
 
-1) npm init -y
-2) npm install express
+2) install express
+```
+npm install express
+```
 
-Now , add more dependencies to help us in the project
-Install these as dev dependencies
+3) Now , add more dependencies to help us in the project . Install these as dev dependencies  
+```
+npm install -D ts-node
+```
+This dependency ts-node automatically compiles the ts for us.
 
-3) npm install -D ts-node
+4) when we installed express , a lot of js code was also installed so we need to define types for those
+```
+npm install -D @types/express
+npm install -D @types/node
+```
 
-when we installed express , a lot of js code was also installed 
-so we need to define types for those
-
-4) npm install -D @types/express
-5) npm install -D @types/node
-
-install nodemon library
-
-6) npm install -D nodemon
+5) install nodemon library
+```
+npm install -D nodemon
+```
 
 See all these installations in the package.json file
 
 
-<!-- ====================== Section Separator ====================== -->
-// Now we have to configure the typescript
-to do so we will make a tsconfig.json file 
 
-1) npm install -D typescript ( first install typescript)
-2) npx tsc --init. ( or make your own file)
+## Configure the typescript 
 
-3) In tsconfig.json file add these below compiler options
-,
+We will define how typescript should behave in this project 
+
+1) First install typescript as dev dependency
+```
+npm install -D typescript
+```
+
+2) Make the tsconfig.json  file  (manually or by code )
+```
+npx tsc --init
+```
+
+
+## Configuring the tsconfig file
+
+1) include : directories to include (for ts compliation)
+2) exclude : directories to exclude (for ts compilation)
+
+3) file config
+```
+{
+  "compilerOptions": {
+  
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    "rootDir": "./src",                                     /* Specify the root folder within your source files. */                            
+    "outDir": "./dist",                                   /* Specify an output folder for all emitted files. */            /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */                            /* Ensure 'use strict' is always emitted. */
+    "noUnusedLocals": true,                              /* Enable error reporting when local variables aren't read. */                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  },
   "include": [
-    "src/**/*". (-> it means all files inside src folder)
+    "src/**/*"
   ],
   "exclude": [
-    "node_modules",
+    "node_modules"
   ]
+}
 
-    "skipLibCheck": true, -> (.d.ts files also excluded)
-     "outDir": "./dist", -> (tells where all compiled files will go)
-    "rootDir": "./src",  -> (src folder is the root folder)
+```
 
 
-// add type:module in package.json for es6
 
-<!-- ====================== Section Separator ====================== -->
-// Running the ts server
 
-    1) npx ts-node src/server.ts 
-    this will directly execute the file ( server will start running)
+## Running the Typescript code 
 
-    2) npx tsc
-    this will create a dist folder , inside that folder we will be having 
-    all the ts->js compiled files
-    ex: server.js file will be there (with type checking)
-    node dist/server.js ( now we can run this file)
+1) Define a basic server in src->server.ts file
+```
+import express from 'express';
 
-    This js code will not be having a lot of baggage and we can directly ship
-    this js code  
+const app = express();
 
-<!-- ====================== Section Separator ====================== -->
-    /*
-    git init
-    git add .
-    git commit -m "add commit"
-    git remote add origin 
-    git checkout -b master
-    git push origin master
-    */
+const PORT = 3000
+
+app.get('/ping' , (req , res)=>{
+  res.send('pong')
+})
+
+app.listen(PORT, ()=>{
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Press CTRL+C to stop the server`);
+})
+```
+
+2) Directly execute the file ( server will start running)
+```
+npx ts-node src/server.ts 
+```
+
+3) Create a dist folder , inside that folder we will be having alll the ts->js compiled files. 
+```
+npx tsc
+```
+Now  server.js file will be there (with type checking) 
+To run this file 
+```
+node dist/server.js 
+```
+This js code will not be having a lot of baggage and we can directly ship this js code 
+
+
+## Git setup
+
+1) Make a .gitignore file . put following thins there
+```
+node_modules/
+dist/
+```
+2) Setup the rep 
+```
+git init
+git add .
+git commit -m "add commit"
+git remote add origin ""
+git checkout -b master
+git push origin master
+```
 
 <!-- ====================== Section Separator ====================== -->
 Handling sensitive and configurable info (say port changes then application will reload) to handle this we will make a env file
