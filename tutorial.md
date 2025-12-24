@@ -135,71 +135,153 @@ git checkout -b master
 git push origin master
 ```
 
-<!-- ====================== Section Separator ====================== -->
-Handling sensitive and configurable info (say port changes then application will reload) to handle this we will make a env file
+## ⬢ New Section : Need for  .env file
 
-env variables are stored in os level and any process can access these
-ex: type env in terminal to see all these
+1) Handling sensitive and configurable info (say port changes then application will have to redeployed). To handle this we will make a env variables. 
+Env variables are stored in os level and any process can access these ex: type env in terminal to see all these.
 
-to manage these env variables there is a nodejs package 
+2) If we change these varaibales , now we just have to restart the server and the server can pick them again . So , we dont have to redeploy the server. 
 
-1) npm i dotenv
-2) now create a .env file inside the project only
+3) To provide extra layer of security in these env variables , people use key vaults like aws key vault , azure key vault etc. 
 
-<!-- ====================== Section Separator ====================== -->
 
-1) config layer : it will contain all the configuration files 
+## ⬢ New Section : Creating  .env file
 
-dotenv.config(): it will load all the env variables from the .env file to the config file
-when server is running . When server stops then it doesn't get loaded 
+1) To manage these env variables there is a nodejs package
+```
+npm i dotenv
+```
+2) Now create a .env file inside the project only and add it to .gitignore file
+```
+PORT=3001
+```
 
-to check this : in config folder -> index.ts make a function , inside that call
-dotenv.config() and then export that function to the main file (server.ts)
-print to check if the environment variables are loaded or not
 
-2) To provide extra layer of security in these env variables , people use key vaults
-like aws key vault , azure key vault etc
 
-<!-- ====================== Section Separator ====================== -->
+## ⬢ New Section : Creating  config layer 
 
-In production we avoid this process.env()
-/* 
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on http://localhost:${process.env.PORT}`);
-  console.log('Press Ctrl+C to stop the server');
-  
-});
-*/
+1) Create a folder src-> config -> index.ts . This file will have all the basic configuration logics. 
+```
+import dotenv from 'dotenv';
 
-Instead we will create a object that contains all the env variables 
-
-1) In index.ts file define the types and export it
-type EnvConfig = {
-  PORT : number
+function loadEnv (){
+dotenv.config();
 }
 
-export const envConfig : EnvConfig = {
-  PORT : Number (process.env.PORT) || 3005
+export default loadEnv;
+```
+
+2) dotenv.config(): it will load all the env variables from the .env file to the config file when server is running . When server stops then it doesn't get loaded. 
+
+3) Now , in the server.ts file import and load these and use process.env.PORT instead of PORT. 
+```
+import express from 'express';
+import loadEnv from './config/index.js';
+
+const app = express();
+
+
+
+app.get('/ping' , (req , res)=>{
+  res.send('pong')
+})
+
+loadEnv();
+console.log(`Environment variables loaded`);
+
+app.listen(process.env.PORT, ()=>{
+    console.log(`Server is running on http://localhost:${process.env.PORT}`);
+    console.log(`Press CTRL+C to stop the server`);
+    
+})
+```
+
+
+
+## ⬢ New Section : Cleaning the code 
+
+1) In index.ts we will create a object that has access to all the env variables , so instead of writing process.env everywhere we can use that object . This will allow us to have centralized control over the config variables. 
+
+2) Define the type for that object 
+```
+type ServerConfig = {
+    PORT : number
+}
+```
+3) Now make a object using this type .
+```
+import dotenv from 'dotenv';
+
+type ServerConfig = {
+    PORT : number
 }
 
-2) Now in the server.ts file use envConfig.PORT instead of process.env.PORT
+export function loadEnv (){
+dotenv.config();
+}
+
+export const serverConfig : ServerConfig = {
+    // process.env.PORT is a string , so convert it to number 
+    PORT : Number(process.env.PORT) || 3001
+}
+
+```
+
+4) Now the server.ts file will look like this (Note the import has been changed and process.env has been replaced)
+```
+import express from 'express';
+import {loadEnv , serverConfig} from './config';
+
+const app = express();
 
 
-<!-- ====================== Section Separator ====================== -->
-Controllers : are the function after validators that handle the requests . Here
-this function acts as a controller 
 
-app.get('/ping', (req, res) => {
-  res.send('pong');
-});
+app.get('/ping' , (req , res)=>{
+  res.send('pong')
+})
 
-So now this changes to 
+loadEnv();
+console.log(`Environment variables loaded`);
 
-app.get('/ping', pingHandler); -> when we get ping request we pass it to the controller
+app.listen(serverConfig.PORT, ()=>{
+    console.log(`Server is running on http://localhost:${serverConfig.PORT}`);
+    console.log(`Press CTRL+C to stop the server`);
+    
+})
+```
 
-Note : we get ping request , it is being redirected to the pingHandler (controller)
-so this line is basically a routing line 
+5) Checking : Remove the port from the .env file and re-run the server
+```
+npx ts-node src/server.ts 
+```
 
+6) If we put the port value say PORT=3000 , we will still see the fallback port value. This is because 
+there is a issue .
+
+
+
+
+## ⬢ New Section : Fixing the port issue 
+
+1) We are importing these things (import {loadEnv , serverConfig} from './config';) but at this point of time the
+env variables have not been loaded yet . They will load only when we will call (loadEnv();)
+
+2) Remove this (loadEnv();) from the server.ts file and call this in the index.ts file only
+Change that we will have to make in the index.ts file
+```
+ function loadEnv (){
+dotenv.config();
+}
+
+loadEnv();
+```
+
+and changes in the server.ts file
+```
+import { serverConfig} from './config';
+
+// and remove the loadEnv() line
+```
 
 <!-- ====================== Section Separator ====================== -->
 
