@@ -283,20 +283,133 @@ import { serverConfig} from './config';
 // and remove the loadEnv() line
 ```
 
-<!-- ====================== Section Separator ====================== -->
+## ⬢ New Section : Need for the controller layer
 
-Routing : There is a mechanism called as express routing to define the routing layer.
-In this mechanism we do not define routes directly on the app object (this ensures that our
-app object is not changed by the routing layer)
+1) Controller after the validators are the first function that hadles our request.
+In server.ts file
+```
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+Receives an HTTP request
+Sends an HTTP response
+That is exactly what a controller does.
+```
 
-Instead create a router object and then define the routes on that object (say pingRouter)
+2) Make a file src/controllers/ping.controller.ts
+```
+import { Request, Response } from "express"
 
-// Below line registers all the routers and their corresponding routes
-// to the  app server object
+export const pingHandler = (req:Request , res:Response)=>{
+  res.send('pong')
+}
+```
+
+3) In the server.ts file
+```
+/* this will get replaced
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+*/
+
+app.get('/ping' , pingHandler)
+
+// also import the pingHandler
+// import { pingHandler } from './controllers/ping.controller';
+;
+```
+
+4) If we clearly see then , this line (app.get('/ping' , pingHandler)) is acting like a router
+
+## ⬢ New Section : Need for the routing layer
+
+1) Routing Layer : It maps HTTP request with the correct controllers 
+
+It decides:
+- Which URL is called (/users, /orders/:id). 
+- Which HTTP method (GET, POST, PUT, DELETE). 
+- Which controller should handle it. 
+
+2) For this : app.get('/ping' , pingHandler);
+URL : /ping
+HTTP : GET
+Controller : ping controller
+
+
+## ⬢ New Section : Brute force way of making the router 
+
+1) Createe a file src/routers/ping.router.ts
+```
+import { Express } from "express";
+import { pingHandler } from "../controllers/ping.controller";
+
+export function createPingRouter (app : Express){
+     app.get('/ping' , pingHandler);
+}
+```
+
+2) In the server.ts file 
+```
+// app.get('/ping' , pingHandler);
+createPingRouter(app)
+```
+
+3) To check this : Start the server and in new terminal send this 
+```
+curl -X GET http://localhost:3000/ping
+```
+
+4) Issue with this approach is that we are passing app to a seperate function that can even try to modify the app object.  
+So , the recommended mechanism is the express router mechanism
+
+
+## ⬢ New Section : Express router mechanism 
+
+1) In above approach we are defining the routes on the app object itself . But now using express router mechanism we will define the routes on a router object and then we will attach that router object to the app object.
+
+2) In the ping.router.ts file
+```
+import  express  from "express";
+import { pingHandler } from "../controllers/ping.controller";
+
+const pingRouter = express.Router();
+
+pingRouter.get('/ping' , pingHandler);
+
+export default pingRouter;
+```
+
+3) And in the server.ts file (use app.use(pingRouter))
+
+```
+import express from 'express';
+import { serverConfig} from './config';
+import pingRouter from './routers/ping.router';
+
+const app = express();
+
+
+
+// app.get('/ping' , pingHandler);
+// createPingRouter(app)
+
+
 app.use(pingRouter);
-// we can add more routers
 
-Note : app.use(middleware name) registers this middleware to all the requests
+console.log(`Environment variables loaded`);
+
+app.listen(serverConfig.PORT, ()=>{
+    console.log(`Server is running on http://localhost:${serverConfig.PORT}`);
+    console.log(`Press CTRL+C to stop the server`);
+    
+})
+````
+
+4) Here we are registering all the routes that are being handled by the pingRouter to the app object .
+You can check this by sending the curl request
+
+
 
 <!-- ====================== Section Separator ====================== -->
 
