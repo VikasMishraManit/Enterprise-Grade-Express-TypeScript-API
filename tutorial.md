@@ -404,7 +404,7 @@ app.listen(serverConfig.PORT, ()=>{
     console.log(`Press CTRL+C to stop the server`);
     
 })
-````
+```
 
 4) Here we are registering all the routes that are being handled by the pingRouter to the app object .
 You can check this by sending the curl request
