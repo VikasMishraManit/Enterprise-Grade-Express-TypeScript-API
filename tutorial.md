@@ -411,44 +411,86 @@ You can check this by sending the curl request
 
 
 
-<!-- ====================== Section Separator ====================== -->
-
-Middleware : are functions having access to req , res and next middleware function
-
-pingRouter.get('/ping' ,middleware1,middleware2, pingHandler)
 
 
-Here pingHandler is the terminating middleware
+## ⬢ New Section : Middlewares
 
-<!-- ====================== Section Separator ====================== -->
+1) Middleware handles cross-cutting concerns that should NOT live in controllers or routes.
 
-We can segregate parts of a url and assign a one router 
+2) Definition: A middleware is a function that has access to the request object (req), the response object (res), and the next middleware function in the application’s request-response cycle.
 
-Instead of this in server.ts (app.use(pingRouter))
+3) Examples of middlewares:
+- Logging Middleware: Logs details about each incoming request.
+- Authentication Middleware: Verifies user authentication before allowing access to certain routes. 
+- Error Handling Middleware: Catches and processes errors that occur during request handling.
 
-do this 
-app.use('/ping' , pingRouter) -> request starts with ping then assign pingRouter object
+4) Routing - > Middlwware 1 -> Middleware 2 -> Controller -> Response
+ex; app.get(/ping , startMiddleware)
 
-Now in pinRouter.ts
+5) This is how we chain the middlewares :
+ pingRouter.get('/ping' , middleware1 , middleware2 , pingHandler);
 
-pingRouter.get('/' , pingHandler) -> If that is a get request and end there only
-it is being handled by the pingHandler router
 
-If url after ping is health then do this
-pingRouter.get('/health' , (req,res) =>{
+
+## ⬢ New Section : Use Case of Middlewares
+
+1) Sepration of concerns
+ex : for these kind of validation chaining we make use of middlewares
+
+request -> validateRequestBody -> validateAuthentication -> validateAuthorization -> operationController
+
+
+2) In server.ts file
+```
+// any middleware registered with app.use is going to be used in every request
+app.use(pingRouter);
+```
+
+3) Bcz of the middlewares , express router gives us the flexibilty to seggregate the urls in the request. 
+```
+// in server.ts file , if any request has url /ping (its type doesnt matter get/post etc)
+// pass it to the ping Router
+app.use('/ping', pingRouter);
+
+// now in ping router.ts file
+pingRouter.get('/' , pingHandler); // if after that url is empty and it is a get request then pass it to pingHandler. 
+
+// another example if remaining url has /health and is a get request then handle it as given
+pingRouter.get('/health' , (req,res)=>{
   res.status(200).send('OK');
-});
+})
+```
 
-Now , because of this we will be able to implement a very interesting feature called as
-api versioning
 
-<!-- ====================== Section Separator ====================== -->
 
-API Versioning : We want to handle 1 set of api through 1 router. Keeping that api
-we can add more api's that can be handled by different routers 
+## ⬢ New Section : API Versioning
 
-app.use('/api/v1' , v1)
-app.use('/api/v2' ,v2)
+1) If the request URL starts as 
+```
+// if request url is as given below handle it with v1Router 
+app.use('/api/v1' , v1Router);
+``` 
+
+2) Folder : Router -> v1 -> index.router.ts
+```
+import express from 'express'
+import pingRouter from './ping.router';
+
+const v1Router = express.Router();
+
+// write the logic of v1Router here
+
+v1Router.use('/ping' , pingRouter);
+
+// move the ping.router.ts file to v1 folder and update the imports
+
+export default v1Router ; 
+
+```
+
+3) Now we can make one more folder v2 similar to v1
+
+4) See only at the last middleware (pinghandler) we are using app.get or ap.post . Rest we are just using app.use 
 
 
 <!-- ====================== Section Separator ====================== -->
