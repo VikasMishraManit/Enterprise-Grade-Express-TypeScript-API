@@ -118,6 +118,27 @@ node dist/server.js
 This js code will not be having a lot of baggage and we can directly ship this js code 
 
 
+## ⬢ New Section : Scripts for running the code 
+
+1) In the package.json file
+```
+ "scripts": {
+    "start": "npx ts-node src/server.ts",
+    "dev": "nodemon src/server.ts"
+  },
+```
+
+2) To run this command
+```
+// for start or test 
+npm start
+
+// for other commands
+npm run dev
+```
+
+
+
 ## ⬢ New Section : Git setup
 
 1) Make a .gitignore file . put following thins there
