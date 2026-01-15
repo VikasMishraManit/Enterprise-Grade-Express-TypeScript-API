@@ -514,58 +514,70 @@ export default v1Router ;
 4) See only at the last middleware (pinghandler) we are using app.get or ap.post . Rest we are just using app.use 
 
 
-<!-- ====================== Section Separator ====================== -->
 
-Restarting Server : We donot want to restart the server again and again . So we will create a script for that
+## ⬢ New Section : Accessing query Params and Request Body
 
-Whenever code changes , nodemon automatically restarts the server
-cmd is : npx nodemon src/server.ts
 
-However in package.json we can add script for that
- "scripts": {
-    "start": "ts-node src/server.ts",
-    "dev" : "nodemon src/server.ts"
-  }
+1) In the ping handler function
+```
+import { Request, Response } from "express"
 
-  Now , we can simply run 
-  npm start 
-  npm run dev (apart from start and test put run before the command )
+export const pingHandler = (req:Request , res:Response)=>{
 
-<!-- ====================== Section Separator ====================== -->
-Sending data through Postman and receiving it on the express
+  console.log('request body is : ' , req.body);
+  console.log('request query is : ' , req.query);
+  res.send('pong')
+}
+```
 
-console.log("req body is " , req.body); -> req body is undefined
-console.log("req query is " , req.query); -> but we can see request params
+2) Now send the query param and req body ( raw json) through the postman.
+Request body can be sent in both get and post request
+```
 
-Output:
-'req body is  undefined
-req query is  [Object: null prototype] { age: '23', gender: 'male' }
-'
-Reason : both query params and url params are string . so express knows it already
-and hence it has logic written for it to be parsed(this thing is called as serialization and deserialization)
+// query param
+// http://localhost:3000/api/v1/ping?age =23&city=bengaluru
 
-However , request body can be text/xml/json etc. Express can still do the 
-serialization and de-serilization for us , but first we have to tell it about
-the type 
+// request body 
+{
+    "name" : "Vikas"
+}
 
-<!-- ====================== Section Separator ====================== -->
+// we are seeing the query params but the request body is still undefined
+request body is :  undefined
+request query is :  [Object: null prototype] { 'age ': '23', city: 'bengaluru' }
 
-Serialization and De-Serialization of the body : It is done by using the 
-middleware
+```
 
-app.use(express.json()) or app.use(express.text())
+3) Reason : Both the query params and URL params are written as string . So they are deterministics (their types) , so express also knows their data types . So it can parse it. 
 
-Output : 
-req body is  { name: 'vikas', company: 'Sigmoid' }
-req query is  [Object: null prototype] { age: '23', gender: 'male' }
+However , the request body can be of any types (json in rest , xml in soap etc) , so we have to tell express about the different type of data that we are going to read. 
 
-<!-- ====================== Section Separator ====================== -->
-Url encoding 
+This concept is called as serialization and de-serialization. 
 
-The url cannot have anything inside it (like comma). But using allowed characters
-we can use this (	its url encoding is this : %2C)
+4) To fix this , in the server.ts file 
+```
+// whatever request body is coming , I am trying to convert it to json
+app.use(express.json());
+
+// now the output is
+request body is :  { name: 'Vikas' }
+request query is :  [Object: null prototype] { 'age ': '23', city: 'bengaluru' }
+
+// if text is coming
+app
+```
+
+5) For the url encoded data. 
+
+The url cannot have anything inside it (like comma). But using allowed characters (using these characters we will make a commma ) we can use this (	its url encoding is this : %2C)
 
 We can also send this type of url encoded data in the express .
+
+```
+// for this the middleware is this
+app.use(express.urlencoded({ extended: true }));
+```
+
 
 <!-- ====================== Section Separator ====================== -->
 Reading URL Params
