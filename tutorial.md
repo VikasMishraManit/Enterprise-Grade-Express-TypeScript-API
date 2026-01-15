@@ -576,6 +576,9 @@ We can also send this type of url encoded data in the express .
 ```
 // for this the middleware is this
 app.use(express.urlencoded({ extended: true }));
+
+// extended = true -> means qs library for pasrsing
+// extended = false -> we will use query string library
 ```
 
 
