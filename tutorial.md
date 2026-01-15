@@ -582,14 +582,12 @@ app.use(express.urlencoded({ extended: true }));
 ```
 
 
-<!-- ====================== Section Separator ====================== -->
-Reading URL Params
+6) Query params start after ? . However , for Rreading URL Params When you want to send the data in the url params , you have to tell the express js that this part of the url is varaible
 
-When you want to send the data in the url params , you have to tell the express js
-that this part of the url is varaible
+pingRouter.get('/:id/comments' , pingHandler)(write it where final request have been mentioned). 
+That colon part is the variable part , comments is a constant part (since no colon)  
 
-pingRouter.get('/:id/comments' , pingHandler)(where final request have been mentioned)
-That colon part is the varaible part
+
 
 <!-- ====================== Section Separator ====================== -->
 JSON's are not type-safe . So to improve this we are going to add the validation
