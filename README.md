@@ -2,7 +2,7 @@
 
 A production-ready REST API built with Express.js and TypeScript, featuring comprehensive middleware architecture, robust error handling, request validation, and advanced logging capabilities.
 
-## 🚀 Key Features
+##  Key Features
 
 ### Architecture & Design
 - **TypeScript-First Development**: Full type safety across the entire application
@@ -35,7 +35,7 @@ A production-ready REST API built with Express.js and TypeScript, featuring comp
 - **Type-Safe Config**: Strongly typed configuration objects
 - **Centralized Config Layer**: Single source of truth for all configurations
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 src/
@@ -61,7 +61,7 @@ src/
 └── server.ts                 # Application entry point
 ```
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 - **Runtime**: Node.js
 - **Language**: TypeScript
@@ -73,7 +73,7 @@ src/
   - nodemon (Auto-restart)
   - dotenv (Environment management)
 
-## 📦 Installation
+##  Installation
 
 ```bash
 # Clone the repository
@@ -90,7 +90,7 @@ cp .env.example .env
 # PORT=3005
 ```
 
-## 🚦 Getting Started
+##  Getting Started
 
 ### Development Mode
 ```bash
@@ -110,7 +110,7 @@ npx tsc
 node dist/server.js
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### Environment Variables
 Create a `.env` file in the root directory:
@@ -128,7 +128,7 @@ The project uses a custom `tsconfig.json` with:
 - Strict type checking
 - Source maps enabled
 
-## 📝 API Examples
+##  API Examples
 
 ### Health Check Endpoint
 ```http
@@ -163,7 +163,7 @@ Content-Type: application/json
 }
 ```
 
-## 🔐 Request Validation
+##  Request Validation
 
 Example Zod schema validation:
 
@@ -179,7 +179,7 @@ router.post('/user',
 );
 ```
 
-## 📊 Logging System
+##  Logging System
 
 ### Features
 - **Correlation ID**: Every request gets a unique ID for tracking
@@ -210,7 +210,7 @@ logger.error('Database connection failed', { error: err.message });
 logger.warn('Rate limit approaching', { remaining: 10 });
 ```
 
-## 🚨 Error Handling
+##  Error Handling
 
 ### Custom Error Classes
 ```typescript
@@ -231,7 +231,7 @@ export class UnauthorizedError implements AppError { /* ... */ }
 }
 ```
 
-## 🎯 Key Implementation Highlights
+##  Key Implementation Highlights
 
 ### 1. Middleware Chain
 ```
@@ -253,7 +253,7 @@ export const envConfig: EnvConfig = {
 }
 ```
 
-## 📈 Scalability Features
+##  Scalability Features
 
 - **API Versioning**: Easy to maintain multiple API versions
 - **Modular Routes**: Add new routes without touching existing code
@@ -269,7 +269,7 @@ export const envConfig: EnvConfig = {
 4. **Error Handling**: Throw custom errors when needed
 5. **Logging**: Logger automatically tracks with correlation ID
 
-## 🧪 Testing Recommendations
+##  Testing Recommendations
 
 - Unit tests for validators (Zod schemas)
 - Integration tests for API endpoints
@@ -277,7 +277,7 @@ export const envConfig: EnvConfig = {
 - Logger output validation
 - Middleware chain testing
 
-## 📚 Learning Outcomes
+##  Learning Outcomes
 
 This project demonstrates proficiency in:
 - TypeScript advanced types and interfaces
@@ -289,7 +289,7 @@ This project demonstrates proficiency in:
 - Configuration management
 - API design best practices
 
-## 🤝 Contributing
+##  Contributing
 
 This is a showcase project demonstrating enterprise-grade Node.js development patterns. Feel free to use it as a template for your own projects.
 
