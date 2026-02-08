@@ -589,76 +589,114 @@ That colon part is the variable part , comments is a constant part (since no col
 
 
 
-<!-- ====================== Section Separator ====================== -->
-JSON's are not type-safe . So to improve this we are going to add the validation
-layer to it
+## ⬢ New Section : Need for ZOD Validation
 
-Start from 1:44
+1) JSON's are not type safe , so we cannot enforce a contract. So we use the validation layer. 
 
-<!-- ====================== Section Separator ====================== -->
-ZOD 
+2) Request body can be very heavy , so we will be requiring different kinds of check for that. So we will need a smarter soluton rather than manually looking at it. 
 
--> Install zod : npm i zod
--> Define the schema of the object/value that you want to test
-->ZOD will test it through the parse function
+3) For doing this we will be using ZOD. 
 
- // let us make a object
-  const obj = {
-    name: 'Test Object',
-    age : 23
-  }
 
-  // now let us define a zod schema for this object
-  const objSchema = z.object({
-    name: z.string(),
-    age: z.number().int().positive()
-  });
 
-  console.log(objSchema.parse(obj));
+## ⬢ New Section : Integrating ZOD in the project
 
-<!-- ====================== Section Separator ====================== -->
-Using ZOD in the validation layer to validate the request body
+1) Install zod. ZOD has a concept of schema that means for every request that is coming we need to define the schema for that request. 
+```
+npm i zod
+```
 
--> For every request body we are going to maintain a schema . For example : 
-schema for req body createUser 
-schema for req body createPost req
+2) For different types of request body , we are going to maintain the schema. Example schema for create user request , schema for create post request etc. 
 
-Whenever that req comes to us , we will parse that req body in the parse function of 
-that schema . In this way we are going to validate it .
+To create the schema validators ->ping.validator.ts (create the schema in this file)
 
-Also to make the code non-blocking , we are having async function for the parsing
+```
+import {z} from "zod";
 
-<!-- ====================== Section Separator ====================== -->
 
-Src->validators->index.ts
+export const pingSchema = z.object({
+   message : z.string().min(1)
+})
+```
 
--> create a function to validate the req body 
--> its argument will be the zod schema
--> and the type of that zod schema is going to be any zod object
--> it returns a middleware function to return the validate the request body for us
 
--> This function will create a middleware on the go 
--> make sure this is async 
+3) Setup : src ->validators ->index.ts. Here we will have a zod schema to validate the request body. And we are going to return the middleware. 
 
-import { NextFunction, Request, Response } from "express";
+-> If we will call this function and pass ZodSchema then it is going to return a middleware
+```
+import { NextFunction, Request, Response, response } from "express";
 import { ZodObject, ZodRawShape } from "zod";
 
-const validateRequestBody = (schema: ZodObject<ZodRawShape>) => {
-   return  async (req: Request , res : Response , next : NextFunction)=>{
-    try{
-      await schema.parseAsync(req.body);
-      console.log("request  body is valid");
-      next();
-      
-    }
-    catch(err){
-      // if the validation fails
-      return ; 
-    }
-   }
-};
 
-export default validateRequestBody;
+// -> we are going to use this function as a middleware in our routes 
+// to validate the request body against a given Zod schema
+
+export const validateRequestBody = (schema: ZodObject<ZodRawShape>) => {
+
+    // return async function to be used as middleware
+
+    return async (req : Request , res: Response , next : NextFunction) => {
+        try {
+
+            // validate the request body against the schema
+            await schema.parseAsync(req.body);
+            
+            // if validation is successful, call the next middleware or route handler
+            next();
+
+        } catch (error) {  
+
+             res.status(400).json({
+                message: "Invalid request body",
+                success: false,
+                error: error
+            });
+            
+        }
+    }
+}
+
+export const validateQueryParams =  (schema: ZodObject<ZodRawShape>) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        try {
+
+            await schema.parseAsync(req.query);
+            console.log("Query params are valid");
+            next();
+
+        } catch (error) {
+            // If the validation fails, 
+
+            res.status(400).json({
+                message: "Invalid query params",
+                success: false,
+                error: error
+            });
+            
+        }
+    }
+}
+```
+
+
+4) Now go in the ping.router.ts file and I want to validate  requests with the same incoming request body. 
+ ```
+ // req 1 : 
+pingRouter.get('/' , pingHandler);
+
+// to validate this we do this
+pingRouter.get('/' , validateRequestBody(pingSchema) ,pingHandler);
+
+// let us say we want to validate with userSchema next time
+pingRouter.get('/' , validateRequestBody(userSchema) ,pingHandler);
+
+// this has made code quality much better. We have a function validateRequestBody which takes a schema
+// pasres it and return result accordingly 
+
+
+```
+
+
 
 
 <!-- ====================== Section Separator ====================== -->
