@@ -46,6 +46,7 @@ npx tsc --init
 ```
 
 
+
 ## ⬢ New Section : Configuring the tsconfig file
 
 1) include : directories to include (for ts compliation)
@@ -75,9 +76,7 @@ npx tsc --init
     "node_modules"
   ]
 }
-
 ```
-
 
 
 
@@ -118,6 +117,7 @@ node dist/server.js
 This js code will not be having a lot of baggage and we can directly ship this js code 
 
 
+
 ## ⬢ New Section : Scripts for running the code 
 
 1) In the package.json file
@@ -138,7 +138,6 @@ npm run dev
 ```
 
 
-
 ## ⬢ New Section : Git setup
 
 1) Make a .gitignore file . put following thins there
@@ -146,7 +145,7 @@ npm run dev
 node_modules/
 dist/
 ```
-2) Setup the rep 
+2) Setup the repo 
 ```
 git init
 git add .
@@ -155,6 +154,8 @@ git remote add origin ""
 git checkout -b master
 git push origin master
 ```
+
+
 
 ## ⬢ New Section : Need for  .env file
 
@@ -177,7 +178,14 @@ npm i dotenv
 PORT=3001
 ```
 
+## ⬢ New Section : Need of config layer 
 
+A "config layer" is a design pattern used to centralize application settings, environment variables, and external service credentials. Instead of scattering process.env calls throughout your codebase, you create a dedicated module to manage these values. 
+
+Key Purposes of a Config Layer - 
+1) Centralization: All settings (database URLs, API keys, port numbers) are managed in one location.
+2) Validation: Ensures required environment variables exist and are in the correct format (e.g., converting a port string to a number) before the app starts.
+3) Ease of Testing: Simplifies mocking configuration values during unit and integration tests.
 
 ## ⬢ New Section : Creating  config layer 
 
@@ -297,7 +305,7 @@ dotenv.config();
 loadEnv();
 ```
 
-and changes in the server.ts file
+and change in the server.ts file
 ```
 import { serverConfig} from './config';
 
@@ -360,7 +368,7 @@ Controller : ping controller
 
 ## ⬢ New Section : Brute force way of making the router 
 
-1) Createe a file src/routers/ping.router.ts
+1) Create a file src/routers/ping.router.ts
 ```
 import { Express } from "express";
 import { pingHandler } from "../controllers/ping.controller";
@@ -429,9 +437,6 @@ app.listen(serverConfig.PORT, ()=>{
 
 4) Here we are registering all the routes that are being handled by the pingRouter to the app object .
 You can check this by sending the curl request
-
-
-
 
 
 ## ⬢ New Section : Middlewares
@@ -511,7 +516,7 @@ export default v1Router ;
 
 3) Now we can make one more folder v2 similar to v1
 
-4) See only at the last middleware (pinghandler) we are using app.get or ap.post . Rest we are just using app.use 
+4) See only at the last middleware (pinghandler) we are using app.get or app.post . Rest we are just using app.use 
 
 
 
@@ -581,12 +586,10 @@ app.use(express.urlencoded({ extended: true }));
 // extended = false -> we will use query string library
 ```
 
-
 6) Query params start after ? . However , for Rreading URL Params When you want to send the data in the url params , you have to tell the express js that this part of the url is varaible
 
 pingRouter.get('/:id/comments' , pingHandler)(write it where final request have been mentioned). 
-That colon part is the variable part , comments is a constant part (since no colon)  
-
+That colon part is the variable part , comments is a constant part (since no colon)
 
 
 ## ⬢ New Section : Need for ZOD Validation
@@ -699,102 +702,174 @@ pingRouter.get('/' , validateRequestBody(userSchema) ,pingHandler);
 
 
 
-<!-- ====================== Section Separator ====================== -->
-   Adding Error Handling 
-<!-- ====================== Section Separator ====================== -->
 
-For synchronous function , express throws the error automatically
-For async function , we need to pass an next middleware
+## ⬢ New Section : Adding Error Handling. 
 
-flow : validators - > controller - > express error handler
-
-synchronous function error 
+1) Errors that occur in synchronous code inside route handlers and middleware require no extra work. If synchronous code throws an error, then Express will catch and process it
+```
 app.get('/', (req, res) => {
   throw new Error('BROKEN') // Express will catch this on its own.
 })
 
+```
 
-async function error 
+2) For errors returned from asynchronous functions invoked by route handlers and middleware, you must pass them to the next() function, where Express will catch and process them. Starting with Express 5, route handlers and middleware that return a Promise will call next(value) automatically when they reject or throw an error
 
-app.get('/', (req, res, next) => {
-  fs.readFile('/file-does-not-exist', (err, data) => {
-    if (err) {
-      next(err) // Pass errors to Express.
-    } else {
-      res.send(data)
-    }
-  })
+
+3) Example 
+```
+app.get('/user/:id', async (req, res, next) => {
+  const user = await getUserById(req.params.id)
+  res.send(user)
 })
+```
+If getUserById throws an error or rejects, next will be called with either the thrown error or the rejected value. If no rejected value is provided, next will be called with a default Error object provided by the Express router.
 
-<!-- ====================== Section Separator ====================== -->
-Manual Error Handling
+If you pass anything to the next() function (except the string 'route'), Express regards the current request as being an error and will skip any remaining non-error handling routing and middleware functions.
 
+
+## ⬢ New Section : Handling  synchronous error
+
+1) In the ping.controller.ts file throw a error
+```
+import { Request, Response } from "express"
+
+export const pingHandler = (req:Request , res:Response)=>{
+
+  throw new Error("This is a test error for testing the error handling middleware");
+  
+  // res.status(200).json({
+  //   message : "pong",
+  //   success : true
+  // })
+}
+```
+
+2) Now 
+```
+npm run dev 
+
+// in the postman make a get request to 
+http://localhost:3000/api/v1/ping
+
+// also since we are validating , and validation expects a message 
+// in postman -> body -> raw
+// write this message
+//{"message":"hello"}
+
+// now make the request
+
+// ans we will see the error
+// 500 Internal Server Error
+```
+
+## ⬢ New Section : Handling  Asynchronous error
+
+1) Express says if we get an async error , we just have to pass it to the next middleware . This next middleware is being built by express on its own and it handles the logic for it. 
+
+```
+import { NextFunction, Request, Response } from "express"
+import fs from 'fs';
+
+export const pingHandler = (req:Request , res:Response , next : NextFunction)=>{
+
+  fs.readFile('sample.txt' , 'utf-8' , (err,data)=>{
+    if(err){
+      console.error("Error reading file:", err);
+      next(err); // defualt error handling middleware will handle this error
+    }
+
+    res.status(200).json({
+      message : "Pong",
+      success : true,
+      data : data
+    })
+  })  
+}
+```
+## ⬢ New Section : Custom error handling
+
+1) Let us say we want to send a custom error response for a error of a controller . And also for a lot of controller we want to send this same custom error response. 
+So we are going to make a central error handler 
+
+2) Add this generic error handler after all the routers in server.ts file
+```
+
+app.use('/api/v1' , v1Router);
+app.use('/api/v2' , v2Router);
+
+// default error handling middleware
+app.use(generalErrorHandler);
+```
+
+3) Code for generic error handler : src/middlewares/error.middleware.ts
+```
 import { NextFunction, Request, Response } from "express";
+
+// argument of this should be the error object we want to handle
+// error handling function has 4 arguments instead of 3 like normal middleware functions
+export const generalErrorHandler = (err: any, req: Request, res: Response, next:NextFunction) => {
+
+    res.status(501).json({
+        message: "Something went wrong",
+        success: false
+    });
+}
+```
+
+3) And in the pingcontroller.ts , call the next error . Now this default next error handler of express will be overwritten by our custom error handler
+```
+import { NextFunction, Request, Response } from "express"
 import fs from "fs/promises";
 
-export const pingHandler = async (req: Request, res: Response, next: NextFunction) => {
-  
-  try{
- await fs.readFile("sample")
- res.status(200).json({message : "pong"});
-  } catch(error){
-  console.log("error in reading file",error);
-  res.status(500).json({message : "Internal server error"});
-  }
-};
+export const pingHandler = async (req:Request , res:Response , next : NextFunction)=>{
 
-For lot of controller functions , we will be doing the error handling in the same way. So , we can make a middleware 
-to handle that error handling .
+   try {
+      await fs.readFile("sample");
+      res.status(200).json({
+        message: "Pong",
+        success: true
+      });
+   } catch (error) {
+          next(error);
+   }
+}
+```
 
-<!-- ====================== Section Separator ====================== -->
-Generic error handling middleware
+4) As expected we see this response in postman with the status code of 501 as defined by us in the custom error handler
+```
+{
+    "message": "Something went wrong",
+    "success": false
+}
+```
 
--> src - > middlewares -> error.middleware.ts 
-
-make the custom generic error handling middleware 
-
-import { NextFunction, Request, Response } from "express";
-
-export const genericErrorHandler = (err : any , req:Request , res : Response , next : NextFunction) =>{
-    res.status(501).json({
-        success: false,
-        message: "something went wrong !!!"
-    })
+5) For express version 5 or more , if that async function fails it automaticaaly calls the error handler
+```
+// insted of this
+  try {
+      await fs.readFile("sample");
+      res.status(200).json({
+        message: "Pong",
+        success: true
+      });
+   } catch (error) {
+          next(error);
+   }
 }
 
-//now in the server.ts
+// we can directly write this
 
-// after all the routers , add the custom error handler
-app.use(genericErrorHandler);
+await fs.readFile("sample"); -> if this fails automatically error handler is called 
 
-// our final pingcontroller.ts
+      res.status(200).json({
+        message: "Pong",
+        success: true
+      });
+```
 
-import { NextFunction, Request, Response } from "express";
-import fs from "fs/promises";
 
-export const pingHandler = async (req: Request, res: Response, next: NextFunction) => {
-  
-  try{
- await fs.readFile("sample")
- res.status(200).json({message : "pong"});
-  } catch(error){
-    // since express already calls the next function
-    next(error)
-  }
-};
-
-// we can also do this (since express automatically calls next) in express versions 5 or above
-
-import { NextFunction, Request, Response } from "express";
-import fs from "fs/promises";
-
-export const pingHandler = async (req: Request, res: Response, next: NextFunction) => {
-  
-
- await fs.readFile("sample")
- res.status(200).json({message : "pong"})  
-};
-
+## ⬢ New Section : Improving the error response
 <!-- ====================== Section Separator ====================== -->
 Different error messages for different responses
 
