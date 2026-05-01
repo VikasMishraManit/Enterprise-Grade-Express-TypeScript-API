@@ -77,7 +77,7 @@ src/
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone <repository-url> <your-folder-name>
 cd <project-name>
 
 # Install dependencies
