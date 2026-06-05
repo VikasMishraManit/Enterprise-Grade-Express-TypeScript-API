@@ -53,7 +53,7 @@ npx tsc --init
 2) exclude : directories to exclude (for ts compilation)
 
 3) file config
-```
+```ts
 {
   "compilerOptions": {
   
@@ -83,7 +83,7 @@ npx tsc --init
 ## ⬢ New Section : Running the Typescript code 
 
 1) Define a basic server in src->server.ts file
-```
+```ts
 import express from 'express';
 
 const app = express();
@@ -190,7 +190,7 @@ Key Purposes of a Config Layer -
 ## ⬢ New Section : Creating  config layer 
 
 1) Create a folder src-> config -> index.ts . This file will have all the basic configuration logics. 
-```
+```ts
 import dotenv from 'dotenv';
 
 function loadEnv (){
@@ -203,7 +203,7 @@ export default loadEnv;
 2) dotenv.config(): it will load all the env variables from the .env file to the config file when server is running . When server stops then it doesn't get loaded. 
 
 3) Now , in the server.ts file import and load these and use process.env.PORT instead of PORT. 
-```
+```ts
 import express from 'express';
 import loadEnv from './config/index.js';
 
@@ -238,7 +238,7 @@ type ServerConfig = {
 }
 ```
 3) Now make a object using this type .
-```
+```ts
 import dotenv from 'dotenv';
 
 type ServerConfig = {
@@ -257,7 +257,7 @@ export const serverConfig : ServerConfig = {
 ```
 
 4) Now the server.ts file will look like this (Note the import has been changed and process.env has been replaced)
-```
+```ts
 import express from 'express';
 import {loadEnv , serverConfig} from './config';
 
@@ -316,7 +316,7 @@ import { serverConfig} from './config';
 
 1) Controller after the validators are the first function that hadles our request.
 In server.ts file
-```
+```ts
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
@@ -326,7 +326,7 @@ That is exactly what a controller does.
 ```
 
 2) Make a file src/controllers/ping.controller.ts
-```
+```ts
 import { Request, Response } from "express"
 
 export const pingHandler = (req:Request , res:Response)=>{
@@ -335,7 +335,7 @@ export const pingHandler = (req:Request , res:Response)=>{
 ```
 
 3) In the server.ts file
-```
+```ts
 /* this will get replaced
 app.get('/ping', (req, res) => {
   res.send('pong');
@@ -369,7 +369,7 @@ Controller : ping controller
 ## ⬢ New Section : Brute force way of making the router 
 
 1) Create a file src/routers/ping.router.ts
-```
+```ts
 import { Express } from "express";
 import { pingHandler } from "../controllers/ping.controller";
 
@@ -379,7 +379,7 @@ export function createPingRouter (app : Express){
 ```
 
 2) In the server.ts file 
-```
+```ts
 // app.get('/ping' , pingHandler);
 createPingRouter(app)
 ```
@@ -398,7 +398,7 @@ So , the recommended mechanism is the express router mechanism
 1) In above approach we are defining the routes on the app object itself . But now using express router mechanism we will define the routes on a router object and then we will attach that router object to the app object.
 
 2) In the ping.router.ts file
-```
+```ts
 import  express  from "express";
 import { pingHandler } from "../controllers/ping.controller";
 
@@ -411,7 +411,7 @@ export default pingRouter;
 
 3) And in the server.ts file (use app.use(pingRouter))
 
-```
+```ts
 import express from 'express';
 import { serverConfig} from './config';
 import pingRouter from './routers/ping.router';
@@ -467,13 +467,13 @@ request -> validateRequestBody -> validateAuthentication -> validateAuthorizatio
 
 
 2) In server.ts file
-```
+```ts
 // any middleware registered with app.use is going to be used in every request
 app.use(pingRouter);
 ```
 
 3) Bcz of the middlewares , express router gives us the flexibilty to seggregate the urls in the request. 
-```
+```ts
 // in server.ts file , if any request has url /ping (its type doesnt matter get/post etc)
 // pass it to the ping Router
 app.use('/ping', pingRouter);
@@ -492,13 +492,13 @@ pingRouter.get('/health' , (req,res)=>{
 ## ⬢ New Section : API Versioning
 
 1) If the request URL starts as 
-```
+```ts
 // if request url is as given below handle it with v1Router 
 app.use('/api/v1' , v1Router);
 ``` 
 
 2) Folder : Router -> v1 -> index.router.ts
-```
+```ts
 import express from 'express'
 import pingRouter from './ping.router';
 
@@ -524,7 +524,7 @@ export default v1Router ;
 
 
 1) In the ping handler function
-```
+```ts
 import { Request, Response } from "express"
 
 export const pingHandler = (req:Request , res:Response)=>{
@@ -560,7 +560,7 @@ However , the request body can be of any types (json in rest , xml in soap etc) 
 This concept is called as serialization and de-serialization. 
 
 4) To fix this , in the server.ts file 
-```
+```ts
 // whatever request body is coming , I am trying to convert it to json
 app.use(express.json());
 
@@ -578,7 +578,7 @@ The url cannot have anything inside it (like comma). But using allowed character
 
 We can also send this type of url encoded data in the express .
 
-```
+```ts
 // for this the middleware is this
 app.use(express.urlencoded({ extended: true }));
 
@@ -613,7 +613,7 @@ npm i zod
 
 To create the schema validators ->ping.validator.ts (create the schema in this file)
 
-```
+```ts
 import {z} from "zod";
 
 
@@ -626,7 +626,7 @@ export const pingSchema = z.object({
 3) Setup : src ->validators ->index.ts. Here we will have a zod schema to validate the request body. And we are going to return the middleware. 
 
 -> If we will call this function and pass ZodSchema then it is going to return a middleware
-```
+```ts
 import { NextFunction, Request, Response, response } from "express";
 import { ZodObject, ZodRawShape } from "zod";
 
@@ -683,7 +683,7 @@ export const validateQueryParams =  (schema: ZodObject<ZodRawShape>) => {
 
 
 4) Now go in the ping.router.ts file and I want to validate  requests with the same incoming request body. 
- ```
+ ```ts
  // req 1 : 
 pingRouter.get('/' , pingHandler);
 
@@ -706,7 +706,7 @@ pingRouter.get('/' , validateRequestBody(userSchema) ,pingHandler);
 ## ⬢ New Section : Adding Error Handling. 
 
 1) Errors that occur in synchronous code inside route handlers and middleware require no extra work. If synchronous code throws an error, then Express will catch and process it
-```
+```ts
 app.get('/', (req, res) => {
   throw new Error('BROKEN') // Express will catch this on its own.
 })
@@ -717,7 +717,7 @@ app.get('/', (req, res) => {
 
 
 3) Example 
-```
+```ts
 app.get('/user/:id', async (req, res, next) => {
   const user = await getUserById(req.params.id)
   res.send(user)
@@ -731,7 +731,7 @@ If you pass anything to the next() function (except the string 'route'), Express
 ## ⬢ New Section : Handling  synchronous error
 
 1) In the ping.controller.ts file throw a error
-```
+```ts
 import { Request, Response } from "express"
 
 export const pingHandler = (req:Request , res:Response)=>{
@@ -767,7 +767,7 @@ http://localhost:3000/api/v1/ping
 
 1) Express says if we get an async error , we just have to pass it to the next middleware . This next middleware is being built by express on its own and it handles the logic for it. 
 
-```
+```ts
 import { NextFunction, Request, Response } from "express"
 import fs from 'fs';
 
@@ -793,7 +793,7 @@ export const pingHandler = (req:Request , res:Response , next : NextFunction)=>{
 So we are going to make a central error handler 
 
 2) Add this generic error handler after all the routers in server.ts file
-```
+```ts
 
 app.use('/api/v1' , v1Router);
 app.use('/api/v2' , v2Router);
@@ -803,7 +803,7 @@ app.use(generalErrorHandler);
 ```
 
 3) Code for generic error handler : src/middlewares/error.middleware.ts
-```
+```ts
 import { NextFunction, Request, Response } from "express";
 
 // argument of this should be the error object we want to handle
@@ -818,7 +818,7 @@ export const generalErrorHandler = (err: any, req: Request, res: Response, next:
 ```
 
 3) And in the pingcontroller.ts , call the next error . Now this default next error handler of express will be overwritten by our custom error handler
-```
+```ts
 import { NextFunction, Request, Response } from "express"
 import fs from "fs/promises";
 
@@ -845,7 +845,7 @@ export const pingHandler = async (req:Request , res:Response , next : NextFuncti
 ```
 
 5) For express version 5 or more , if that async function fails it automaticaaly calls the error handler
-```
+```ts
 // insted of this
   try {
       await fs.readFile("sample");
@@ -870,327 +870,633 @@ await fs.readFile("sample"); -> if this fails automatically error handler is cal
 
 
 ## ⬢ New Section : Improving the error response
-<!-- ====================== Section Separator ====================== -->
-Different error messages for different responses
 
-src -> utils -> errors -> app.error.ts
+1) File : utils/errors/app.error.ts file 
+```ts
+// src/utils/errors/app.error.ts
 
+/**
+ * AppError
+ *
+ * A custom error class used throughout the application.
+ *
+ * Why do we need this?
+ *
+ * The default JavaScript Error object only contains:
+ *  - message
+ *  - name
+ *  - stack
+ *
+ * But in an API, we also need an HTTP status code
+ * so that our error middleware knows what response
+ * to send to the client.
+ *
+ * Example:
+ *
+ * throw new AppError("User not found", 404);
+ *
+ * Instead of:
+ *
+ * throw new Error("User not found");
+ */
+export class AppError extends Error {
 
+  /**
+   * HTTP status code to be returned
+   *
+   * Examples:
+   * 400 -> Bad Request
+   * 401 -> Unauthorized
+   * 403 -> Forbidden
+   * 404 -> Not Found
+   * 500 -> Internal Server Error
+   */
+  public readonly statusCode: number;
 
--> now in the app.error.ts file , complete the file 
+  /**
+   * Indicates whether this is an expected
+   * application error or an unexpected system error.
+   *
+   * Examples:
+   * User not found -> true
+   * Invalid token -> true
+   * Database crash -> false
+   */
+  public readonly isOperational: boolean;
 
--> in the generic error handler (error middleware) , define the type of the error , statusCode and error message
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    isOperational: boolean = true
+  ) {
 
+    /**
+     * Calls the parent Error constructor.
+     *
+     * Without this:
+     * err.message would not be set correctly.
+     */
+    super(message);
 
-import { NextFunction, Request, Response } from "express";
-import { AppError } from "../utils/errors/app.error";
+    /**
+     * Save additional information
+     * on the error object.
+     */
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
 
-export const genericErrorHandler = (err : AppError , req:Request , res : Response , next : NextFunction) =>{
+    /**
+     * Fixes prototype chain.
+     *
+     * Required when extending built-in classes
+     * like Error in TypeScript.
+     *
+     * Without this:
+     *
+     * err instanceof AppError
+     *
+     * may return false.
+     */
+    Object.setPrototypeOf(this, new.target.prototype);
 
-    console.log("error parameters is " , err);
-    
-    res.status(err.statusCode).json({
-        success: false,
-        message: err.message
-    })
-}
-
-
--> and then in the ping controller , throw this error
-
-import { NextFunction, Request, Response } from "express";
-import fs from "fs/promises";
-import { AppError } from "../utils/errors/app.error";
-
-export const pingHandler = async (req: Request, res: Response, next: NextFunction) => {
-  
-  try{
- await fs.readFile("sample")
- res.status(200).json({message : "pong"});
-  } catch(error){
-     // now let us make object from the custom error
-     const customError : AppError = {
-        statusCode : 500 ,
-        message : "Internal Server Error",
-        name : 
-     }
-
-     throw customError ;
+    /**
+     * Captures the exact stack trace
+     * from where the error was thrown.
+     *
+     * Example:
+     *
+     * Error: User not found
+     *   at UserService.getUser()
+     *   at UserController.getUser()
+     */
+    Error.captureStackTrace(this);
   }
-};
+}
+```
 
-<!-- ====================== Section Separator ====================== -->
-We can make it even more cleaner
+2) In typescript there is one more way for this : make interface , use that in error middleware and then in
+ping controller (create app error object using the interface)
+```ts
+1) Interfaces can be used for object oriented. 
+2) They can act as a contracts ( We can make a class implement this contract). 
+3) Interface vs class . Interface allows multiple inheritance (bcz of polymorphism)
 
--> class for the internal server error 
-export interface AppError extends Error{
-     statusCode : number ,
+//1: app.error.ts
+export interface AppError extends Error {
+    statusCode: number;
 }
 
-export class InternalServerError implements AppError {
+//2: error.middleware.ts
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "../utils/errors/app.error";
+
+// argument of this should be the error object we want to handle
+// error handling function has 4 arguments instead of 3 like normal middleware functions
+export const generalErrorHandler = (err: AppError, req: Request, res: Response, next:NextFunction) => {
+
+    res.status(err.statusCode).json({
+        message: err.message,
+        success: false
+    });
+}
+
+//3 : ping.controller.ts
+ import { NextFunction, Request, Response } from "express"
+// we will use promise version because it is easier to work with async/await and 
+// it is more modern than the callback version of fs module
+import fs from "fs/promises"; 
+import { AppError } from "../utils/errors/app.error";
+
+export const pingHandler = async (req:Request , res:Response , next : NextFunction)=>{
+
+  // // for express version 5 or more if our async function throws an error 
+  // // it will be automatically caught and passed to the error handling middleware
+  // await fs.readFile("sample"); // if it fails it will throw an error and it will be caught by the error handling middleware
+
+  //     res.status(200).json({
+  //       message: "Pong",
+  //       success: true
+  //     });
+
+  try {
+     await fs.readFile("sample"); 
+     res.status(200).json({
+        message: "Pong",
+        success: true
+      });
+  } catch (error) {
+    // make apperror object
+    const appError: AppError = {
+        statusCode: 500,
+        message : "Internal Server Error",
+        name: "InternalServerError",
+    }
+    throw appError; // this error will be caught by the error handling middleware
+    
+  }
+}
+```
+
+3) Test in the postman
+```
+http://localhost:3001/api/v1/ping
+body->raw-> {"message": "hello"}
+
+response 
+{
+    "message": "Internal Server Error",
+    "success": false
+}
+
+and we will see 500 internal server error (what we coded)
+```
+
+4) We can make it even more cleaner
+```ts
+//1: in app.error.ts file
+export interface AppError extends Error {
+    statusCode: number;
+}
+
+export class InternalServerError  implements AppError {
     statusCode: number;
     message: string;
     name: string;
 
-    constructor(message : string){
-        this.statusCode = 500 ;
+    constructor(message: string) {
+        this.statusCode = 500;
         this.message = message;
-        this.name = "InternalServerError"
+        this.name = "InternalServerError";
     }
 }
 
--> and send this error in the controller (ping.controller.ts)
+// we can create more custom error classes like NotFoundError, BadRequestError etc. 
+// by implementing the AppError interface and setting the appropriate status code and message.
 
-import { NextFunction, Request, Response } from "express";
-import fs from "fs/promises";
+
+
+
+//2:  in ping.controller.ts file
+import { NextFunction, Request, Response } from "express"
+// we will use promise version because it is easier to work with async/await and 
+// it is more modern than the callback version of fs module
+import fs from "fs/promises"; 
 import { InternalServerError } from "../utils/errors/app.error";
 
-export const pingHandler = async (req: Request, res: Response, next: NextFunction) => {
-  
-  try{
- await fs.readFile("sample")
- res.status(200).json({message : "pong"});
-  } catch(error){
-     
-    throw new InternalServerError("Something went wrong while reading the file");
+export const pingHandler = async (req:Request , res:Response , next : NextFunction)=>{
+
+
+  try {
+     await fs.readFile("sample"); 
+     res.status(200).json({
+        message: "Pong",
+        success: true
+      });
+  } catch (error) {
+    // we will throw internal server error which then will be caught by the error handling middleware 
+    // and sent to the client as a response
+    throw new InternalServerError("Something went wrong !!!"); // this will be caught by the error handling middleware
   }
-};
+}
 
-
-Summary 
--> in the server.ts we have app.use(genericErrorHandler)
--> which is coming from the error.middleware.ts file
--> this file has err of type AppError
--> which is implemented in the app.error.ts file ( present in errors folder , which is present in utils)
+```
 
 
 
-<!-- ====================== Section Separator ====================== -->
-Adding production grade loggers 
-<!-- ====================== Section Separator ====================== -->
-Use case : Let us say somebody made a payment on airbnb , the payment got deducted but they received errors . As a engineer , to 
-look into the problem , we have to know few things
-- when the request was made 
-- what procedures were done right 
-- what went wrong with it etc
 
-For all these logging is very necessary things (on  call engineers depend on this )
 
-Why console.log() will not work ? : Because that will be visible for only that session 
 
-There are many logging libraries for us to use like morgan , pino , winston etc 
+## ⬢ New Section : Adding production grade loggers
 
+1) Use case : Let us say somebody made a payment on airbnb , the payment got deducted but they received errors . As a engineer , to look into the problem , we have to know few things. 
+
+- when the request was made
+- what procedures were done right
+- what went wrong with it etc. 
+
+For all these logging is very necessary things (on call engineers depend on this )
+
+2) Why console.log() will not work ? : Because that will be visible for only that session
+
+3) There are many logging libraries for us to use like morgan , pino , winston etc. 
 Logging Library we are going to use : Winston
 
-<!-- ====================== Section Separator ====================== -->
-Now , we have to prepare a logger object (we have to do some configuration for this object )
+## ⬢ New Section : Integrating Winston logging 
 
-src ->config ->logger.config.ts
+1) Install winston and prepare a logging object using winston . This object will help us in logging
+```
+npm i winston
+```
 
-Properties of this logger object 
-
--> Transport : it tells where should the logs go 
--> Format : what should the log print (timestamp , messages etc)
-
+2) We will configure winston
+```ts
 import winston from "winston";
 
+// create the logger object with the desired configuration
 const logger = winston.createLogger({
-    // define the format
-      format: winston.format.combine(
-        winston.format.timestamp({format : "MM-DD-YYYY HH:mm:ss"}),
-        winston.format.json(),
-        // define the custom print
-        winston.format.printf(({level,message,timestamp,...data})=>{
-         const output = {level,message,timestamp,data};
-         return JSON.stringify(output);
-        })
-      ),
+// let us now configure this object 
 
-      // define the transport 
-      transports : [
-        new winston.transports.Console(),
-      ]
+// 1: format : what should logs show ex: timestamp, log level, message etc.
+format: winston.format.combine(
+    winston.format.timestamp({format: 'MM-DD-YYYY HH:mm:ss'}), // this will add a timestamp to each log entry in the specified format
+    winston.format.json(), // this will log in JSON format, which is useful for structured logging and easier parsing. 
+  // define the custom print
+    winston.format.printf(({ timestamp, level, message , ...data }) => {
+       const output = {level , message , timestamp, data};
+       return JSON.stringify(output); // this will convert the log entry to a JSON string
+    })
+),
+
+// 2: transports : where should the logs be stored or displayed
+transports: [
+    new winston.transports.Console(), // this will log to the console
+]
 });
 
+// export the logger to be used in other parts of the application
+// we do default export here because we want to import it with any name in other files without using curly braces
 export default logger;
+```
 
-and in the server.ts file
+3) Testing the logging 
+```ts
+// go to server.ts 
+import logger from './config/logger.config';
 
-app.listen(serverConfig.PORT, () => {
-  console.log(`Server running on http://localhost:${serverConfig.PORT}`);
-  logger.info(`press ctrl +c to stop the server` , {"name" : "dev server});
-});
-
-
-In the transport array , we can mention the place where we want to store our logger object
-
-<!-- ====================== Section Separator ====================== -->
-
-Problem Statement : user1 -> we store its log , user2 ->we store its logs then again user1 and so on
-How are we going to identify which users log are there in the logger
-
-Solution : Corelation Id (unique id for a particular request)
-
-Steps :
-
--> Generate a unique id ( using UUID package)
--> Before any request (in server.ts file) add a middleware for it
-
-This approach is going to be working in 80-90 percent cases . There will be some corner cases , but first let us 
-try out this approach
-
-config->logger.config.ts
-import winston from "winston";
+// code ....
 
 
-const logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({ format: "MM-DD-YYYY HH:mm:ss"  }), // how the timestamp should be formatted
-        winston.format.json(), // Format the log message as JSON
-        // define a custom print
-        winston.format.printf( ({  level, message, timestamp, ...data }) => {
-            const output = { 
-                level,
-                message, 
-                timestamp, 
-                data 
-            };
-            return JSON.stringify(output);
-        })
-    ),
-    transports: [
-        new winston.transports.Console(),
-    ]
-});
+app.listen(serverConfig.PORT, ()=>{
+    console.log(`Server is running on http://localhost:${serverConfig.PORT}`);
+    logger.info(`Press CTRL+C to stop the server`);
+    
+})
+```
 
-export default logger;
+```
+// run : npm run dev and see this output 
 
-and add this correlation id in every log of the logger
-
-<!-- ====================== Section Separator ====================== -->
-Correlation Id in the background job (not in case of rest api)
-
-Let us say that some helper function form the utility folder (it will not have correlation id attached)
-
-Solution : AsyncStorage in NodeJS  
-
-utils ->helpers -> request.helpers.ts
-
-import {AsyncLocalStorage} from 'async_hooks';
-
-type AsyncLocalStorageType = {
-    correlationId : string;
-}
-
-const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageType>();
-
-export const getCorrelationId = () =>{
-    const asyncStore = asyncLocalStorage.getStore();
-    return asyncStore ?.correlationId || 'unknown error while creating correlation id'
-}
+Environment variables loaded
+Server is running on http://localhost:3000
+{"level":"info","message":"Press CTRL+C to stop the server","timestamp":"06-03-2026 15:28:02","data":{}}
+```
 
 
-and then in the correlation middleware
+## ⬢ New Section : Concept of Correlation id 
 
+1) Problem Statement : User 1 made a request and simultaneously user 2 also made a request to a end point. How are we going to ensure that logs of user 1 and user 2 are getting differentiated. 
+
+2) To do this we use correlation id 
+```
+// suppose logs look like this 
+{"correlationId":"abc123","message":"Request Started"}
+{"correlationId":"xyz789","message":"Request Started"}
+{"correlationId":"abc123","message":"User Found"}
+{"correlationId":"xyz789","message":"Password Invalid"}
+
+// say we want to search all log of abc123 
+grep abc123 app.log
+
+// output 
+{"correlationId":"abc123","message":"Request Started"}
+{"correlationId":"abc123","message":"User Found"}
+
+// at big scale we have this flow
+Request
+   |
+Correlation ID
+   |
+Logs
+   |
+Central Log Store
+   |
+Search Dashboard
+```
+
+## ⬢ New Section : Implementing Correlation id 
+
+1) Prepare a middleware for attaching the UUID as correlation id. 
+```ts
+File name : src/middlewares/correlation.middleware.ts
 
 import { NextFunction, Request, Response } from 'express';
-import { v4 as uuidV4 } from 'uuid';
-import { asyncLocalStorage } from '../utils/helpers/request.helper';
+import {v4 as uuidv4} from 'uuid';
 
-export const attachCorrelationIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    // Generate a unique correlation ID
-    const correlationId = uuidV4();
-    
-    req.headers['x-correlation-id'] = correlationId;
+// function to generate a unique correlation ID for each request
+export const attachCorrelationId = (req:Request, res:Response, next:NextFunction) => {
+    // generate a unique correlation ID using uuid library
+    const correlationId = uuidv4();
 
-    // Call the next middleware or route handler
-    asyncLocalStorage.run({correlationId : correlationId},()=>{
-       next();
-    })
-   
+   // in typescript, we need to tell the compiler that we are adding a new property to the request object, 
+   // so we will use type assertion to do that
+   // attach the correlation ID to the request headers so that it can be accessed in the route handlers and other middlewares
+    req.headers["x-correlation-id"] = correlationId;
+
+    // we can also attach the correlation ID to the response headers so that it can be accessed by the client
+    // res.setHeader("x-correlation-id", correlationId);
+
+    // call the next middleware or route handler
+    next();
 }
 
-and then in the logger config we attach it in the output json
-
-import winston from "winston";
-import { getCorrelationId } from "../utils/helpers/request.helper";
 
 
-const logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({ format: "MM-DD-YYYY HH:mm:ss"  }), // how the timestamp should be formatted
-        winston.format.json(), // Format the log message as JSON
-        // define a custom print
-        winston.format.printf( ({  level, message, timestamp, ...data }) => {
-            const output = { 
-                level,
-                message, 
-                timestamp, 
-                correlationId : getCorrelationId(),
-                data 
-            };
-            return JSON.stringify(output);
-        })
-    ),
-    transports: [
-        new winston.transports.Console(),
-    ]
-});
+// in the server.ts file before any request attach it
+import { attachCorrelationId } from './middlewares/correlation.middleware';
+app.use(attachCorrelationId)
 
-export default logger;
+```
 
-logger.something -> calls get correlationId -> which fetches the asyncStore -> and asyncStore for the current async context
-has the correlation id 
+2) Let us test it 
+```ts
+// File : validators/index.ts file
+export const validateRequestBody = (schema: ZodObject<ZodRawShape>) => {
+
+    // return async function to be used as middleware
+
+    return async (req : Request , res: Response , next : NextFunction) => {
+        try {
+            // adding log
+            logger.info("Validating request body against schema" , {correlationId : req.headers["x-correlation-id"]});
+
+            // validate the request body against the schema
+            await schema.parseAsync(req.body);
+
+            // one more log 
+            logger.info("Request body is valid" , {correlationId : req.headers["x-correlation-id"]});
+            
+            // if validation is successful, call the next middleware or route handler
+            next();
+
+        } catch (error) {  
+
+             res.status(400).json({
+                message: "Invalid request body",
+                success: false,
+                error: error
+            });
+
+        }
+    }
+}
 
 
-<!-- ====================== Section Separator ====================== -->
-Storing the logs in a file
+// and in ping.controller.ts
+import { NextFunction, Request, Response } from "express"
+// we will use promise version because it is easier to work with async/await and 
+// it is more modern than the callback version of fs module
+import logger from "../config/logger.config";
 
-in the logger.config.ts file 
+export const pingHandler = async (req:Request , res:Response , next : NextFunction)=>{
+
+  logger.info("Received ping request" , {correlationId : req.headers["x-correlation-id"]});
+  res.status(200).json({
+    message: "pong",
+    success: true
+  });
+
+}
+```
+
+and now 
+```
+// run npm run dev and send request to http://localhost:3000/api/v1/ping
+// output in terminal is 
+Server is running on http://localhost:3000
+{"level":"info","message":"Press CTRL+C to stop the server","timestamp":"06-03-2026 18:41:00","data":{}}
+{"level":"info","message":"Validating request body against schema","timestamp":"06-03-2026 18:41:06","data":{"correlationId":"cbc4ca29-31c3-4628-819c-dffe6760e6d2"}}
+{"level":"info","message":"Request body is valid","timestamp":"06-03-2026 18:41:06","data":{"correlationId":"cbc4ca29-31c3-4628-819c-dffe6760e6d2"}}
+{"level":"info","message":"Received ping request","timestamp":"06-03-2026 18:41:06","data":{"correlationId":"cbc4ca29-31c3-4628-819c-dffe6760e6d2"}}
+
+// we can see that for this request correlation id is same
+
+```
+
+
+
+## ⬢ New Section : Imporving this Correlation id middleware with AsyncLocalStorage
+
+1) This correlation id works well uptil we are using the network request (process is calling rest api) i.e. a path has request flow through routers , controllers etc. What if we had a process that directly calls utility function/service layer etc , then this correlation id will not be attached to it. 
+
+2) 
+```
+When a request enters your Express app, you often create data that should be available throughout the entire request lifecycle, such as a correlationId, userId, or tenantId. The traditional way is to pass these values through every function call:
+
+Controller(correlationId)
+  -> Service(correlationId)
+      -> Repository(correlationId)
+
+This becomes messy because many functions receive parameters they don't actually need. AsyncLocalStorage solves this by creating a request-specific storage area. In a middleware, you create a context:
+
+asyncLocalStorage.run(
+  { correlationId: "abc-123" },
+  () => next()
+);
+
+
+From that point onward, any code executed as part of that request can access the same data using:
+
+const store = asyncLocalStorage.getStore();
+console.log(store?.correlationId);
+
+even deep inside services, repositories, helpers, or after multiple await calls. Node internally tracks which async operations belong to which request and automatically restores the correct context when execution resumes. 
+
+Think of it as giving every request its own invisible backpack containing metadata (correlationId, userId, etc.). Any function handling that request can open the backpack and read the data without needing the original req object or manually passing parameters through every layer. This is why modern Node.js applications use AsyncLocalStorage for logging, tracing, observability, and request-scoped data.
+
+```
+
+3) Let us implement it . 
+```ts
+// Step1 : Function to retrieve correlation id 
+
+// File name : src/utils/helpers/request.helpers.ts
+import {AsyncLocalStorage} from "async_hooks";
+
+// define type
+type AsyncLocalStorageType = {
+    correlationId: string;
+}
+
+// create an instance of AsyncLocalStorage to store the correlation ID for each request
+export const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageType>();
+
+// function to get correlation ID from the AsyncLocalStorage
+export const getCorrelationId = ()=> {
+    const asyncstore = asyncLocalStorage.getStore();
+    return asyncstore ? asyncstore.correlationId : 'unknown-error-while-getting-correlation-id';
+}
+
+
+// Step2 : Ensure we are adding this correlation id 
+// File name : src/middlewares/correlation.middleware.ts
+import { NextFunction, Request, Response } from 'express';
+import {v4 as uuidv4} from 'uuid';
+import { asyncLocalStorage } from '../utils/helpers/request.helpers';
+
+// function to generate a unique correlation ID for each request
+export const attachCorrelationId = (req:Request, res:Response, next:NextFunction) => {
+    // generate a unique correlation ID using uuid library
+    const correlationId = uuidv4();
+
+    req.headers["x-correlation-id"] = correlationId;
+
+   /*
+    We will use the asyncLocalStorage to store the correlation ID for each request,
+    this will allow us to access the correlation ID in any part of the code that is executed as part of the request,
+    even if it is executed in a different async context, such as in a setTimeout or in a database query callback,we will 
+    still be able to access the correlation ID using the getCorrelationId function that we defined in the request.helpers.ts file.
+
+   */
+    asyncLocalStorage.run({ correlationId: correlationId }, () => {
+        // call the next middleware or route handler inside the asyncLocalStorage.run callback to ensure that the correlation ID is available in the async context
+        next();
+    });
+
+};
+```
+
+
+
+3)  We will not maually attach correlation id in logger(in each log line). Whenever someone will create log (log.info , log.error) we will call getcorrelationId() function. 
+In this function we will fetch storage and inside this storage if we have a correlation id we will print that. 
+
+```ts
+
+// 1 : in config/logger.config.ts
+// change the output from
+//        const output = {level , message , timestamp, data};
+// to 
+const output = {level , message , timestamp,correlationId : getCorrelationId(), data};
+
+
+// first in controller/ping.controller.ts
+/*
+  logger.info("Received ping request" , {correlationId : req.headers["x-correlation-id"]});
+  to
+    logger.info("Received ping request");
+*/
+
+
+/* also in validators/index.ts 
+
+change these
+logger.info("Validating request body against schema" , {correlationId : req.headers["x-correlation-id"]});
+logger.info("Request body is valid" , {correlationId : req.headers["x-correlation-id"]});
+
+to
+logger.info("Validating request body against schema" );
+logger.info("Request body is valid");
+
+
+*/
+```
+
+4) Testing it
+```
+// run the server: npm run dev
+
+// output
+{"level":"info","message":"Press CTRL+C to stop the server","timestamp":"06-04-2026 01:40:37","correlationId":"unknown-error-while-getting-correlation-id","data":{}}
+
+// now send the request 
+{"level":"info","message":"Validating request body against schema","timestamp":"06-04-2026 01:41:18","correlationId":"b1e00261-f731-40b1-b67d-4e485a510cdb","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"06-04-2026 01:41:18","correlationId":"b1e00261-f731-40b1-b67d-4e485a510cdb","data":{}}
+{"level":"info","message":"Received ping request","timestamp":"06-04-2026 01:41:18","correlationId":"b1e00261-f731-40b1-b67d-4e485a510cdb","data":{}}
+
+```
+
+5) Brief explanation
+```
+When a request comes from Postman, the attachCorrelationId middleware runs first and generates a unique UUID (correlation ID). It then creates an AsyncLocalStorage context using:
+
+asyncLocalStorage.run(
+  { correlationId },
+  () => next()
+);
+
+Think of this as creating a small request-specific storage box containing the correlation ID. Every piece of code executed as part of that request (validators, controllers, services, repositories, database calls, and even code after await) automatically gets access to the same storage box. 
+Later, when logger.info() is called, it internally executes getCorrelationId(), which reads the correlation ID from AsyncLocalStorage and adds it to the log. 
+This is why you no longer need to manually pass correlationId through function parameters or include it in every log statement.
+```
+
+
+## ⬢ New Section : Storing Logs in a log file
+
+1) We will then add the log to a particular file and add them in .gitignore
+```ts
+// in this file src/config/logger.config.ts
 transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({filename : "logs/app.log"})
-    ]
-
-<!-- ====================== Section Separator ====================== -->
-
-    // log file seprately for every single day
-    Solution : winston daily rotate file
-
-in logger.config.ts file 
-
-
-    import winston from "winston";
-
-import DailyRotateFile from "winston-daily-rotate-file";
-import { getCorrelationId } from "../utils/helpers/request.helper";
-
-const logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({ format: "MM-DD-YYYY HH:mm:ss"  }), // how the timestamp should be formatted
-        winston.format.json(), // Format the log message as JSON
-        // define a custom print
-        winston.format.printf( ({  level, message, timestamp, ...data }) => {
-            const output = { 
-                level,
-                message, 
-                timestamp, 
-                correlationId: getCorrelationId(), 
-                data 
-            };
-            return JSON.stringify(output);
-        })
-    ),
-    transports: [
-        new winston.transports.Console(),
-        new DailyRotateFile({
-            filename: "logs/%DATE%-app.log", // The file name pattern
-            datePattern: "YYYY-MM-DD", // The date format
-            maxSize: "20m", // The maximum size of the log file
-            maxFiles: "14d", // The maximum number of log files to keep
-        })
-        // TODO: add logic to integrate and save logs in mongo
-    ]
+    new winston.transports.Console(), // this will log to the console
+    new winston.transports.File({ filename: 'logs/app.log' }) // this will log to a file named app.log in the logs directory
+]
 });
 
-export default logger;
+2) Logs being segregated day wise 
+```ts
+
+//1 : install winston daily rotate file
+npm i winston-daily-rotate-file
+
+//2: change to following code in this file src/config/logger.config.ts
+
+// import this
+import DailyRotateFile from "winston-daily-rotate-file";
+
+
+// change transports to this
+transports: [
+    new winston.transports.Console(), // this will log to the console
+    new DailyRotateFile({
+        filename: 'logs/%DATE%.log', // this will create log files with the specified name pattern, where %DATE% will be replaced with the current date
+        datePattern: 'YYYY-MM-DD', // this will rotate the log file daily, you can also specify other patterns like 'YYYY-MM-DD-HH' for hourly rotation
+        maxFiles: '14d', // this will keep log files for 14 days and delete older files, you can also specify a number like '10' to keep only the latest 10 files
+    })
+]   
+});
+
+
+//3 : Test it again
+// npm run dev
+// and see the log files
+
+```
